@@ -21,11 +21,6 @@ public class RedisPoolConfig extends GenericObjectPoolConfig {
 	private @Value("${host}") String redisHost;
 	private @Value("${port}") Integer redisPort;
 	private @Value("${master}") String master;
-	private @Value("${connectionTimeout}") Integer connectionTimeout;
-	private @Value("${soTimeout}") Integer soTimeout;
-	private @Value("${password}") String password;
-	private @Value("${database}") Integer database;
-	private @Value("${password}") String clientName;
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -38,7 +33,7 @@ public class RedisPoolConfig extends GenericObjectPoolConfig {
 		Set<String> sentinels = new HashSet<String>();
 		sentinels.add(redisHost + ":" + redisPort);
 		JedisSentinelPool jedisSentinelPool = new JedisSentinelPool(master,
-				sentinels, this, soTimeout, password, database);
+				sentinels, this);
 		return jedisSentinelPool;
 	}
 
@@ -52,26 +47,6 @@ public class RedisPoolConfig extends GenericObjectPoolConfig {
 
 	public String getMaster() {
 		return master;
-	}
-
-	public Integer getConnectionTimeout() {
-		return connectionTimeout;
-	}
-
-	public Integer getSoTimeout() {
-		return soTimeout;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public Integer getDatabase() {
-		return database;
-	}
-
-	public String getClientName() {
-		return clientName;
 	}
 
 }
