@@ -1,4 +1,4 @@
-package com.spring.redis.sentinel.config;
+package com.redis.sentinel.config;
 
 import redis.clients.jedis.Jedis;
 
@@ -14,11 +14,11 @@ public class RedisSentinelJedisPool extends RedisSentinel {
 	 * @param clusterName
 	 *
 	 */
-	public RedisSentinelJedisPool() {
-		this.jedisSentinel = new Jedis(poolConfig.getRedisHost(),
-				poolConfig.getRedisPort());
-		this.createJedisPool(poolConfig.getMaster());
-		this.checkRedisSentinelServer(this, 5000, poolConfig.getMaster());
+	public RedisSentinelJedisPool(String host, Integer port,
+			String... masterName) {
+		this.jedisSentinel = new Jedis(host, port);
+		this.createJedisPool(masterName);
+		this.checkRedisSentinelServer(this, 5000, masterName);
 	}
 
 	@Override

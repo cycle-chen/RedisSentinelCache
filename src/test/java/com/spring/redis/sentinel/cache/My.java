@@ -7,32 +7,25 @@
  * conditions stipulated in the agreement/contract under which the
  * program(s) have been supplied.
  *----------------------------------------------------------------------------*/
-package com.spring.redis.sentinel.cache.service;
+package com.spring.redis.sentinel.cache;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.stereotype.Service;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisSentinelPool;
+import com.redis.sentinel.cache.entity.Account;
+import com.redis.sentinel.cache.jedis.JedisClient;
 
-@Service
-public class EricssonRedisCacheService {
-	@Autowired
-	private JedisSentinelPool jedisSentinelPool;
-
+public class My {
 	@Test
 	public void test() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
-		EricssonRedisCacheService service = context
-				.getBean(EricssonRedisCacheService.class);
-		Jedis jedis = service.jedisSentinelPool.getResource();
-		// Jedis jedis = jedisSentinelPool.getResource();
-		String str = jedis.get("b8");
-		System.out.println(str);
+		JedisClient jedisClient = context.getBean(JedisClient.class);
+		Account account = new Account();
+		account.setId(1);
+		account.setName("supercyc");
+		jedisClient.hsetJson("cyc1", "name", account);
+		System.out.println(jedisClient.hgetJson("cyc1", "name", Account.class));
 	}
-
 }

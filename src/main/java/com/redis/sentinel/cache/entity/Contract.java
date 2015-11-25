@@ -1,4 +1,4 @@
-package com.spring.redis.sentinel.cache.entity;
+package com.redis.sentinel.cache.entity;
 
 import java.io.Serializable;
 

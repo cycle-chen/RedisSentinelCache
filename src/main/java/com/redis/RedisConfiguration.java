@@ -1,3 +1,4 @@
+package com.redis;
 //package com.spring.redis;
 //
 //import java.util.HashSet;

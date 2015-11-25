@@ -1,4 +1,4 @@
-package com.spring.redis;
+package com.redis;
 
 public interface RedisService {
 	

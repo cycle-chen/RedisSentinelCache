@@ -1,4 +1,4 @@
-package com.spring.redis.sentinel.config;
+package com.redis.sentinel.config;
 
 import java.util.List;
 
@@ -8,7 +8,6 @@ import redis.clients.jedis.JedisPool;
 public abstract class RedisSentinel {
 
 	public JedisPool jedisPool = null;
-
 	protected RedisPoolConfig poolConfig = new RedisPoolConfig();
 
 	protected Jedis jedisSentinel = null;

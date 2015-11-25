@@ -1,4 +1,4 @@
-package com.spring.redis.sentinel.cache.entity;
+package com.redis.sentinel.cache.entity;
 
 import java.io.Serializable;
 
@@ -9,10 +9,6 @@ public class Account implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private int id;
 	private String name;
-
-	public Account(String name) {
-		this.name = name;
-	}
 
 	public int getId() {
 		return id;
@@ -29,9 +25,9 @@ public class Account implements Serializable {
 	public void setName(String name) {
 		this.name = name;
 	}
-	//
-	// @Override
-	// public String toString() {
-	// return this.name + this.id;
-	// }
+
+	@Override
+	public String toString() {
+		return this.name + this.id;
+	}
 }

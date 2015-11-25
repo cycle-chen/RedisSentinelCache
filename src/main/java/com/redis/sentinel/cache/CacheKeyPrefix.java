@@ -7,7 +7,7 @@
  * conditions stipulated in the agreement/contract under which the
  * program(s) have been supplied.
  *----------------------------------------------------------------------------*/
-package com.spring.redis.sentinel.cache;
+package com.redis.sentinel.cache;
 
 public class CacheKeyPrefix {
 

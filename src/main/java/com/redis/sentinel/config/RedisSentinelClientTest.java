@@ -1,16 +1,12 @@
-package com.spring.redis.sentinel.config;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+package com.redis.sentinel.config;
 
 import redis.clients.jedis.Jedis;
 
 public class RedisSentinelClientTest {
 
 	public static void main(String[] args) {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"spring-config.xml");
-		RedisSentinel redisSentinelJedisPool = new RedisSentinelJedisPool();
+		RedisSentinel redisSentinelJedisPool = new RedisSentinelJedisPool(
+				"192.168.1.6", 26379, "mymaster");
 		setRedisSentinelJedisPool(redisSentinelJedisPool);
 	}
 
