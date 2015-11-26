@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Transaction;
 
 import com.alibaba.fastjson.JSON;
@@ -103,7 +104,6 @@ public class JedisClient {
 				return jedis.hget(rawRegion, rawKey);
 			}
 		});
-
 		return deserializeValue(rawValue);
 	}
 
@@ -169,6 +169,30 @@ public class JedisClient {
 	}
 
 	/**
+	 * ping test for server alive
+	 */
+	public String ping() {
+		return callBack(new JedisCallback<String>() {
+			@Override
+			public String execute(Jedis jedis) {
+				return jedis.ping();
+			}
+		});
+	}
+
+	/**
+	 * get Redis db size
+	 */
+	public Long dbSize() {
+		return callBack(new JedisCallback<Long>() {
+			@Override
+			public Long execute(Jedis jedis) {
+				return jedis.dbSize();
+			}
+		});
+	}
+
+	/**
 	 * delete cache item in specified region.
 	 *
 	 * @param region
@@ -204,6 +228,7 @@ public class JedisClient {
 	// }
 	// return new HashMap<String, String>();
 	// }
+
 	/**
 	 * execute the specified callback
 	 */
@@ -236,16 +261,33 @@ public class JedisClient {
 	}
 
 	/**
+	 * execute the specified callback under Redis Pipeline
+	 *
+	 * @param callback
+	 *            executable instance unider Pipeline
+	 */
+	public void runWithPipeline(final JedisPipelinedCallback callback) {
+		final Jedis jedis = jedisSentinelPool.getResource();
+		try {
+			final Pipeline pipeline = jedis.pipelined();
+			callback.execute(pipeline);
+			pipeline.sync();
+		} finally {
+			returnResource(jedis);
+		}
+	}
+
+	/**
 	 * serialize cache key
 	 */
-	private byte[] rawKey(final Object key) {
+	public byte[] rawKey(final Object key) {
 		return keySerializer.serialize(key.toString());
 	}
 
 	/**
 	 * serializer cache value
 	 */
-	private byte[] rawValue(final Object value) {
+	public byte[] rawValue(final Object value) {
 		try {
 			return valueSerializer.serialize(value);
 		} catch (Exception e) {
@@ -256,21 +298,21 @@ public class JedisClient {
 	/**
 	 * deserialize key
 	 */
-	private Object deserializeKey(final byte[] rawKey) {
+	public Object deserializeKey(final byte[] rawKey) {
 		return keySerializer.deserialize(rawKey);
 	}
 
 	/**
 	 * deserialize raw value
 	 */
-	private Object deserializeValue(final byte[] rawValue) {
+	public Object deserializeValue(final byte[] rawValue) {
 		return valueSerializer.deserialize(rawValue);
 	}
 
 	/**
 	 * serializer region name
 	 */
-	private byte[] rawRegion(final String region) {
+	public byte[] rawRegion(final String region) {
 		return regionSerializer.serialize(region);
 	}
 

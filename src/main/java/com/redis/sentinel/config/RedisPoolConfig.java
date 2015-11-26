@@ -21,6 +21,7 @@ public class RedisPoolConfig extends GenericObjectPoolConfig {
 	private @Value("${host}") String redisHost;
 	private @Value("${port}") Integer redisPort;
 	private @Value("${master}") String master;
+	private @Value("${timeout}") Integer timeout;
 
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -33,7 +34,7 @@ public class RedisPoolConfig extends GenericObjectPoolConfig {
 		Set<String> sentinels = new HashSet<String>();
 		sentinels.add(redisHost + ":" + redisPort);
 		JedisSentinelPool jedisSentinelPool = new JedisSentinelPool(master,
-				sentinels, this);
+				sentinels, this, timeout);
 		return jedisSentinelPool;
 	}
 

@@ -80,18 +80,10 @@ public class FstRedisSerializer<T> implements RedisSerializer<T> {
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
-			} finally {
-				ois.close();
 			}
 		} catch (Exception e) {
 			log.warn("Fail to deserialize bytes.", e);
 			return null;
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 }

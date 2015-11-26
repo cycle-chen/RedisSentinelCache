@@ -48,7 +48,8 @@ public class SnappyRedisSerializer<T> implements RedisSerializer<T> {
 			return null;
 		}
 		try {
-			return inner.deserialize(Snappy.uncompress(bytes));
+			T t = inner.deserialize(Snappy.uncompress(bytes));
+			return t;
 		} catch (IOException e) {
 			log.error("Fail to deserialize graph.", e);
 			return null;
