@@ -1,7 +1,5 @@
 package com.redis.sentinel.cache.jedis;
 
-import java.util.List;
-
 import redis.clients.jedis.Pipeline;
 
 /**
@@ -9,7 +7,7 @@ import redis.clients.jedis.Pipeline;
  *
  * @author yaochong.chen
  */
-public interface JedisPipelinedCallback {
+public interface JedisPipelinedCallbackNoResult {
 
 	/**
 	 * execute using Redis Pipeline.
@@ -17,6 +15,6 @@ public interface JedisPipelinedCallback {
 	 * @param pipeline
 	 *            Jedis Pipeline
 	 */
-	List<Object> execute(final Pipeline pipeline);
+	void execute(final Pipeline pipeline);
 
 }

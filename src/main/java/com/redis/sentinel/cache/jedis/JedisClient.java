@@ -9,6 +9,7 @@
  *----------------------------------------------------------------------------*/
 package com.redis.sentinel.cache.jedis;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import redis.clients.jedis.Transaction;
 
 import com.alibaba.fastjson.JSON;
 import com.redis.sentinel.cache.serializer.RedisSerializer;
+import com.redis.sentinel.cache.serializer.SerializationTool;
 import com.redis.sentinel.cache.serializer.SnappyRedisSerializer;
 import com.redis.sentinel.cache.serializer.StringRedisSerializer;
 
@@ -74,6 +76,15 @@ public class JedisClient {
 		});
 	}
 
+	public void hset(final String region, final String key, final String value) {
+		runWithTx(new JedisTransactionalCallback() {
+			@Override
+			public void execute(Transaction tx) {
+				tx.hset(region, key, value);
+			}
+		});
+	}
+
 	public void hsetJson(final String region, final String key,
 			final Object value) {
 		runWithTx(new JedisTransactionalCallback() {
@@ -107,6 +118,16 @@ public class JedisClient {
 		return deserializeValue(rawValue);
 	}
 
+	public Object hget(final String region, final String key) {
+		String rawValue = callBack(new JedisCallback<String>() {
+			@Override
+			public String execute(Jedis jedis) {
+				return jedis.hget(region, key);
+			}
+		});
+		return rawValue;
+	}
+
 	public <T> T hgetJson(final String region, final String key, Class<T> clazz) {
 		try {
 			String rawValue = callBack(new JedisCallback<String>() {
@@ -121,6 +142,28 @@ public class JedisClient {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * multiple get cache items in specified region
+	 *
+	 * @param region
+	 *            region name
+	 * @param keys
+	 *            cache key collection to retrieve
+	 * @return cache items
+	 */
+	public List<Object> hmget(final String region, final Collection<?> keys) {
+		final byte[] rawRegion = rawRegion(region);
+		final byte[][] rawKeys = rawKeys(keys);
+
+		List<byte[]> rawValues = callBack(new JedisCallback<List<byte[]>>() {
+			@Override
+			public List<byte[]> execute(Jedis jedis) {
+				return jedis.hmget(rawRegion, rawKeys);
+			}
+		});
+		return deserializeValues(rawValues);
 	}
 
 	/**
@@ -266,12 +309,23 @@ public class JedisClient {
 	 * @param callback
 	 *            executable instance unider Pipeline
 	 */
-	public void runWithPipeline(final JedisPipelinedCallback callback) {
+	public void runWithPipeline(final JedisPipelinedCallbackNoResult callback) {
 		final Jedis jedis = jedisSentinelPool.getResource();
 		try {
 			final Pipeline pipeline = jedis.pipelined();
 			callback.execute(pipeline);
 			pipeline.sync();
+		} finally {
+			returnResource(jedis);
+		}
+	}
+
+	public List<Object> runWithPipeline(final JedisPipelinedCallback callback) {
+		final Jedis jedis = jedisSentinelPool.getResource();
+		try {
+			final Pipeline pipeline = jedis.pipelined();
+			callback.execute(pipeline);
+			return pipeline.syncAndReturnAll();
 		} finally {
 			returnResource(jedis);
 		}
@@ -316,4 +370,22 @@ public class JedisClient {
 		return regionSerializer.serialize(region);
 	}
 
+	@SuppressWarnings("unchecked")
+	private byte[][] rawKeys(final Collection<?> keys) {
+		byte[][] rawKeys = new byte[keys.size()][];
+		int i = 0;
+		for (Object key : keys) {
+			rawKeys[i++] = rawKey(key);
+		}
+		return rawKeys;
+	}
+
+	/**
+	 * deserialize the specified raw value collection
+	 *
+	 * @return collection of original value
+	 */
+	private List<Object> deserializeValues(final List<byte[]> rawValues) {
+		return SerializationTool.deserialize(rawValues, valueSerializer);
+	}
 }
