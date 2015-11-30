@@ -50,7 +50,7 @@ public class JedisClient {
 	}
 
 	/**
-	 * save cache item
+	 * serializer
 	 *
 	 * @param region
 	 *            region name
@@ -76,6 +76,12 @@ public class JedisClient {
 		});
 	}
 
+	/**
+	 *
+	 * @param region
+	 * @param key
+	 * @param value
+	 */
 	public void hset(final String region, final String key, final String value) {
 		runWithTx(new JedisTransactionalCallback() {
 			@Override
@@ -85,6 +91,13 @@ public class JedisClient {
 		});
 	}
 
+	/**
+	 * json
+	 *
+	 * @param region
+	 * @param key
+	 * @param value
+	 */
 	public void hsetJson(final String region, final String key,
 			final Object value) {
 		runWithTx(new JedisTransactionalCallback() {
@@ -118,15 +131,15 @@ public class JedisClient {
 		return deserializeValue(rawValue);
 	}
 
-	public Object hget(final String region, final String key) {
-		String rawValue = callBack(new JedisCallback<String>() {
-			@Override
-			public String execute(Jedis jedis) {
-				return jedis.hget(region, key);
-			}
-		});
-		return rawValue;
-	}
+	// public String hget(final String region, final String key) {
+	// String rawValue = callBack(new JedisCallback<String>() {
+	// @Override
+	// public String execute(Jedis jedis) {
+	// return jedis.hget(region, key);
+	// }
+	// });
+	// return rawValue;
+	// }
 
 	public <T> T hgetJson(final String region, final String key, Class<T> clazz) {
 		try {

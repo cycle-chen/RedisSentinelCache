@@ -21,6 +21,7 @@
         <aspectjweaver.version>1.5.0</aspectjweaver.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
         <tomcat.jdbc.version>7.0.54</tomcat.jdbc.version>
+        <protostuff.version>1.0.7</protostuff.version>
     </properties>
 
     <dependencies>
@@ -139,7 +140,17 @@
             <artifactId>fastjson</artifactId>
             <version>1.1.15</version>
         </dependency>
-
+        <!-- protostuff -->
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
         <!-- remember to delete these denpendency -->
         <dependency>
             <groupId>mysql</groupId>

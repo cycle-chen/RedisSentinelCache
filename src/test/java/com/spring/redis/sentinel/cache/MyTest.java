@@ -89,9 +89,11 @@ public class MyTest {
 	}
 
 	@Test
-	public void testWriteSerializer() { // 100万 时间：217850ms ~ 247745ms
-										// 占内存:266777624-1785368 = 264992256 约等于
-										// 252.72m
+	public void testWriteSerializer() {
+		// 每个对象存储在单独的hash的情况
+		// 100万 时间：236573ms 占内存:266777624-1785368 = 264992256 约等于 252.72m
+		// 所有对象存储在一个hash中的情况
+		// 100万 时间：223084ms 占内存：166049608 约等于 158.36M
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
 		JedisClient jedisClient = context.getBean(JedisClient.class);
@@ -100,20 +102,24 @@ public class MyTest {
 			Account account = new Account();
 			account.setId(i);
 			account.setName("superycc" + i);
-			jedisClient.hset("yccser3s" + i, "account", account);
+			jedisClient.hset("yccser3s", "account" + i, account);
 		}
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 	}
 
 	@Test
-	public void testReadSerializer() {// 100w 时间：177474ms
+	public void testReadSerializer() {
+		// 每个对象存储在单独的hash的情况
+		// 100w 时间：181813ms
+		// 所有对象存储在一个hash中的情况
+		// 100w 时间：179259ms
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
 		JedisClient jedisClient = context.getBean(JedisClient.class);
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < 1000000; i++) {
-			jedisClient.hget("yccser3s" + i, "account");
+			jedisClient.hget("yccser3s", "account" + i);
 		}
 		// System.out.println(jedisClient.hgetJson("cyc1", "account",
 		// Account.class));
