@@ -9,6 +9,27 @@
  *----------------------------------------------------------------------------*/
 package com.redis.sentinel.cache;
 
-public class CacheKeyPrefix {
+public enum CacheKeyPrefix {
+    CONTRACT("contract"), CONTRACT_CUSTOMER("contract::customer"), CUSTOMER("customer"), CUSTOMER_BILLINGACCOUNT(
+            "customer::billingaccount"), CONTRACT_BILLINGACCOUNT("contract::billingaccount"), BILLINGACCOUNT(
+            "billingaccount"), BILLINGACCOUNT_BILLINGADDRESS("billingaccount::billingaddress"), BILLINGADDRESS(
+            "billingaddress"), CONTRACT_ADDRESS("contract::address"), ADDRESS("address"), CONTRACT_PARTYIDENTIFICATION(
+            "contract::partyidentification"), PARTYIDENTIFICATION("partyidentification");
+    private String prefix;
 
+    public abstract <K> String key(K... k, String... column);
+
+    public abstract <K> String indexKey(K... k);
+
+    private CacheKeyPrefix(String prefix) {
+        this.setPrefix(prefix);
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 }

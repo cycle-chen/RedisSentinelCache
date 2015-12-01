@@ -19,6 +19,9 @@ import com.redis.sentinel.cache.entity.Account;
 import com.redis.sentinel.cache.jedis.JedisClient;
 import com.redis.sentinel.cache.serializer.protostuff.ProtostuffSerializer;
 
+/**
+ * 序列化的比较
+ */
 public class SerializerCompare {
 	private ProtostuffSerializer protostuffSerializer = new ProtostuffSerializer();
 

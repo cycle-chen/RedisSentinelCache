@@ -82,7 +82,7 @@ public class JedisClient {
 	 * @param key
 	 * @param value
 	 */
-	public void hset(final String region, final String key, final String value) {
+	public void hset(final byte[] region, final byte[] key, final byte[] value) {
 		runWithTx(new JedisTransactionalCallback() {
 			@Override
 			public void execute(Transaction tx) {

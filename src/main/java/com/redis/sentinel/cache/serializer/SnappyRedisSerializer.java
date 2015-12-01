@@ -19,40 +19,40 @@ import org.xerial.snappy.Snappy;
  * SnappyRedisSerializer Created by debop on 2014. 3. 15.
  */
 public class SnappyRedisSerializer<T> implements RedisSerializer<T> {
-	private static final Logger log = LoggerFactory
-			.getLogger(SnappyRedisSerializer.class);
-	private final RedisSerializer<T> inner;
+    private static final Logger log = LoggerFactory.getLogger(SnappyRedisSerializer.class);
+    private final RedisSerializer<T> inner;
 
-	public SnappyRedisSerializer() {
-		this(new FstRedisSerializer<T>());
-	}
+    public SnappyRedisSerializer() {
+        this(new FstRedisSerializer<T>());
+    }
 
-	public SnappyRedisSerializer(RedisSerializer<T> innerSerializer) {
-		assert (innerSerializer != null);
-		this.inner = innerSerializer;
-	}
+    public SnappyRedisSerializer(RedisSerializer<T> innerSerializer) {
+        assert (innerSerializer != null);
+        this.inner = innerSerializer;
+    }
 
-	@Override
-	public byte[] serialize(T graph) {
-		try {
-			return Snappy.compress(inner.serialize(graph));
-		} catch (IOException e) {
-			log.error("Fail to serialize graph.", e);
-			return EMPTY_BYTES;
-		}
-	}
+    @Override
+    public byte[] serialize(T graph) {
+        try {
+            return Snappy.compress(inner.serialize(graph));
+        } catch (IOException e) {
+            log.error("Fail to serialize graph.", e);
+            return EMPTY_BYTES;
+        }
+    }
 
-	@Override
-	public T deserialize(byte[] bytes) {
-		if ((bytes == null) || (bytes.length == 0)) {
-			return null;
-		}
-		try {
-			T t = inner.deserialize(Snappy.uncompress(bytes));
-			return t;
-		} catch (IOException e) {
-			log.error("Fail to deserialize graph.", e);
-			return null;
-		}
-	}
+    @Override
+    public T deserialize(byte[] bytes) {
+        if ((bytes == null) || (bytes.length == 0)) {
+            return null;
+        }
+        try {
+            T t = inner.deserialize(Snappy.uncompress(bytes));
+            return t;
+        } catch (IOException e) {
+            log.error("Fail to deserialize graph.", e);
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

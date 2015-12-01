@@ -23,40 +23,11 @@ import com.redis.sentinel.cache.jedis.JedisClient;
 import com.redis.sentinel.cache.jedis.JedisPipelinedCallback;
 import com.redis.sentinel.cache.jedis.JedisPipelinedCallbackNoResult;
 
-public class MyTest {
-	/**
-	 * hset读/写基本类型的值----------------------------------------------------------
-	 */
-	@Test
-	public void testWriteString() {// 100万 时间：434186 ~ 441475ms
-									// 占内存:117979768 - 1785472 约等于 112.51M
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"spring-config.xml");
-		JedisClient jedisClient = context.getBean(JedisClient.class);
-		long start = System.currentTimeMillis();
-		for (int i = 0; i < 1000000; i++) {
-			jedisClient.hset("account::1s" + i, "id", i);
-			jedisClient.hset("account::1s" + i, "name", "supercyc" + i);
-		}
-		long end = System.currentTimeMillis();
-		System.out.println(end - start);
-	}
-
-	@Test
-	public void testReadString() {// 两个hget运行时间：358177ms ，一个hget运行时间：186437ms
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"spring-config.xml");
-		JedisClient jedisClient = context.getBean(JedisClient.class);
-		long start = System.currentTimeMillis();
-		for (int i = 0; i < 1000000; i++) {
-			jedisClient.hget("account::1s" + i, "id");
-			jedisClient.hget("account::1s" + i, "name");
-		}
-		long end = System.currentTimeMillis();
-		System.out.println(end - start);
-	}
-
-	/** ----------------------------------------------------------------------- */
+/**
+ * 比较序列化与JSON The purpose of this class is ... TODO javadoc for class
+ * JsonSerializerCompare
+ */
+public class JsonSerializerCompare {
 	@Test
 	public void testWriteJson() {// 100万 时间：210841ms
 									// 占内存:398970256-1785368-266777624
