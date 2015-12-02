@@ -23,55 +23,70 @@ import com.redis.sentinel.cache.serializer.protostuff.ProtostuffSerializer;
  * 序列化的比较
  */
 public class SerializerCompare {
-	private ProtostuffSerializer protostuffSerializer = new ProtostuffSerializer();
+    private ProtostuffSerializer protostuffSerializer = new ProtostuffSerializer();
 
-	/**
-	 * protostuff start
-	 */
-	@Test
-	public void protostuffSerializer() {
-		// 1000万 占内存空间：196289800 ~ 187.20M 时间：216848ms
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"spring-config.xml");
-		JedisClient jedisClient = context.getBean(JedisClient.class);
-		Jedis jedis = jedisClient.getResource();
-		long start = System.currentTimeMillis();
-		for (int id = 1; id <= 1000000; id++) {
-			Account account = new Account();
-			account.setId(id);
-			account.setName("protostuff_ycc" + id);
-			byte[] accountbytes = protostuffSerializer.serialize(account);
-			byte[] keybytes = protostuffSerializer.serialize("account");
-			byte[] fieldbytes = protostuffSerializer
-					.serialize("account::" + id);
-			jedis.hset(keybytes, fieldbytes, accountbytes);
-		}
+    /**
+     * protostuff start
+     */
+    @Test
+    public void protostuffSerializer() {
+        // 250万 占内存空间：505299240 ~ 481.89M  时间：671894ms
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
+        Jedis jedis = jedisClient.getResource();
+        long start = System.currentTimeMillis();
+        for (int id = 1; id <= 2500000; id++) {
+            Account account = new Account();
+            account.setId(id);
+            account.setName("protostuff_ycc" + id);
+            byte[] accountbytes = protostuffSerializer.serialize(account);
+            byte[] keybytes = protostuffSerializer.serialize("account");
+            byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
+            jedis.hset(keybytes, fieldbytes, accountbytes);
+        }
 
-		long end = System.currentTimeMillis();
-		System.out.println(end - start);
-	}
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
 
-	@Test
-	public void protostuffDeserializer() {// 时间：181563ms
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"spring-config.xml");
-		JedisClient jedisClient = context.getBean(JedisClient.class);
-		Jedis jedis = jedisClient.getResource();
-		long start = System.currentTimeMillis();
-		for (int id = 1; id <= 1000000; id++) {
-			byte[] keybytes = protostuffSerializer.serialize("account");
-			byte[] fieldbytes = protostuffSerializer
-					.serialize("account::" + id);
-			byte[] accountbytes = jedis.hget(keybytes, fieldbytes);
-			Account account = protostuffSerializer.deserialize(accountbytes,
-					Account.class);
-		}
+    @Test
+    public void protostuffDeserializer() {// 时间： 411664ms ~ 554660ms
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
+        Jedis jedis = jedisClient.getResource();
+        long start = System.currentTimeMillis();
+        for (int id = 1; id <= 2500000; id++) {
+            byte[] keybytes = protostuffSerializer.serialize("account");
+            byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
+            byte[] accountbytes = jedis.hget(keybytes, fieldbytes);
+            Account account = protostuffSerializer.deserialize(accountbytes, Account.class);
+        }
 
-		long end = System.currentTimeMillis();
-		System.out.println(end - start);
-	}
-	/**
-	 * protostuff end
-	 */
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
 
+    /**
+     * protostuff end
+     */
+
+    /**
+     * snappySerializer start
+     */
+    @Test
+    public void snappySerializer() {
+        // 1000万 占内存空间：  时间：
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
+        long start = System.currentTimeMillis();
+        for (int id = 1; id <= 1000000; id++) {
+            Account account = new Account();
+            account.setId(id);
+            account.setName("protostuff_ycc" + id);
+            jedisClient.hset("account", "account::" + id, account);
+        }
+
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
 }

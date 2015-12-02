@@ -9,13 +9,9 @@
  *----------------------------------------------------------------------------*/
 package com.redis.sentinel.cache;
 
-public enum Test {
-    a {
-        @Override
-        public <T> void test(T t) {
-
-        }
-    };
-
-    public abstract <T> void test(T t);
+public class Test {
+    public static void main(String[] args) {
+        System.out.println(CacheKeyPrefix.CONTRACT_ADDRESS.key("123", "234"));
+        System.out.println(CacheKeyPrefix.CUSTOMER.searchIndex("phone", "15975383197"));
+    }
 }
