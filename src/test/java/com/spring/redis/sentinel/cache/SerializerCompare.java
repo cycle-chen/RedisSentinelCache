@@ -9,14 +9,17 @@
  *----------------------------------------------------------------------------*/
 package com.spring.redis.sentinel.cache;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 
 import com.redis.sentinel.cache.entity.Account;
 import com.redis.sentinel.cache.jedis.JedisClient;
+import com.redis.sentinel.cache.jedis.JedisPipelinedCallback;
 import com.redis.sentinel.cache.serializer.protostuff.ProtostuffSerializer;
 
 /**
@@ -30,38 +33,52 @@ public class SerializerCompare {
      */
     @Test
     public void protostuffSerializer() {
-        // 250万 占内存空间：505299240 ~ 481.89M  时间：671894ms
+        // 250万 占内存空间：505271616 ~ 481.86M  时间：23739ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
-        Jedis jedis = jedisClient.getResource();
         long start = System.currentTimeMillis();
-        for (int id = 1; id <= 2500000; id++) {
-            Account account = new Account();
-            account.setId(id);
-            account.setName("protostuff_ycc" + id);
-            byte[] accountbytes = protostuffSerializer.serialize(account);
-            byte[] keybytes = protostuffSerializer.serialize("account");
-            byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
-            jedis.hset(keybytes, fieldbytes, accountbytes);
-        }
+        jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+            @Override
+            public List<Object> execute(Pipeline pipeline) {
+                for (int id = 1; id <= 2500000; id++) {
+                    Account account = new Account();
+                    account.setId(id);
+                    account.setName("protostuff_ycc" + id);
+                    byte[] keybytes = protostuffSerializer.serialize("account");
+                    byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
+                    byte[] accountbytes = protostuffSerializer.serialize(account);
+                    pipeline.hset(keybytes, fieldbytes, accountbytes);
+                }
+                return null;
+            }
+        });
 
         long end = System.currentTimeMillis();
         System.out.println(end - start);
     }
 
     @Test
-    public void protostuffDeserializer() {// 时间： 411664ms ~ 554660ms
+    public void protostuffDeserializer() {
+        //250万 时间：15516ms ~ 15934ms ~ 17314ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
-        Jedis jedis = jedisClient.getResource();
         long start = System.currentTimeMillis();
-        for (int id = 1; id <= 2500000; id++) {
-            byte[] keybytes = protostuffSerializer.serialize("account");
-            byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
-            byte[] accountbytes = jedis.hget(keybytes, fieldbytes);
+        List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+
+            @Override
+            public List<Object> execute(Pipeline pipeline) {
+                for (int id = 1; id <= 2500000; id++) {
+                    byte[] keybytes = protostuffSerializer.serialize("account");
+                    byte[] fieldbytes = protostuffSerializer.serialize("account::" + id);
+                    pipeline.hget(keybytes, fieldbytes);
+                }
+                return null;
+            }
+        });
+        for (Object o : list) {
+            byte[] accountbytes = (byte[]) o;
             Account account = protostuffSerializer.deserialize(accountbytes, Account.class);
         }
-
         long end = System.currentTimeMillis();
         System.out.println(end - start);
     }
@@ -74,18 +91,49 @@ public class SerializerCompare {
      * snappySerializer start
      */
     @Test
-    public void snappySerializer() {
-        // 1000万 占内存空间：  时间：
+    public void snappySerializerPipeline() {
+        // 250万 占内存空间：451073952 ~ 430.18M  时间：19752ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-        JedisClient jedisClient = context.getBean(JedisClient.class);
+        final JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
-        for (int id = 1; id <= 1000000; id++) {
-            Account account = new Account();
-            account.setId(id);
-            account.setName("protostuff_ycc" + id);
-            jedisClient.hset("account", "account::" + id, account);
-        }
+        jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+            @Override
+            public List<Object> execute(Pipeline pipeline) {
+                for (int id = 1; id <= 2500000; id++) {
+                    Account account = new Account();
+                    account.setId(id);
+                    account.setName("protostuff_ycc" + id);
+                    pipeline.hset(jedisClient.rawRegion("account"), jedisClient.rawKey("account::" + id),
+                            jedisClient.rawValue(account));
+                }
+                return null;
+            }
+        });
 
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
+
+    @Test
+    public void snappyDesrializerPipeline() {
+        // 250万  时间：15261ms ~ 15686ms ~ 17030ms
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        final JedisClient jedisClient = context.getBean(JedisClient.class);
+        long start = System.currentTimeMillis();
+        List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+            @Override
+            public List<Object> execute(Pipeline pipeline) {
+                for (int id = 1; id <= 2500000; id++) {
+                    pipeline.hget(jedisClient.rawRegion("account"), jedisClient.rawKey("account::" + id));
+                }
+                return null;
+            }
+        });
+
+        for (Object o : list) {
+            byte[] bytes = (byte[]) o;
+            Account account = (Account) jedisClient.deserializeValue(bytes);
+        }
         long end = System.currentTimeMillis();
         System.out.println(end - start);
     }
