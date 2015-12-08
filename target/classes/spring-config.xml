@@ -10,8 +10,9 @@
 	<context:annotation-config />
 
 	<context:component-scan base-package="com.redis.sentinel" />
-	<!-- 属性配置文件 -->
+	<!-- redis xml方式的配置文件 -->
 	<!-- <context:property-placeholder location="classpath:redis.properties" /> -->
+	<!--(暂时屏蔽掉,如果连接数据库需要打开)
  	<bean id="propertiesConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -21,7 +22,8 @@
 			</list>
 		</property>
 	</bean>
-	<!--连接池配置 -->
+	-->
+	<!--连接池配置 (暂时屏蔽掉,如果连接数据库需要打开)
 	  <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource"
 		destroy-method="close">
 		<property name="url" value="${jdbc.url}"></property>
@@ -34,7 +36,8 @@
 		<property name="minIdle" value="0" />
 		<property name="defaultAutoCommit" value="false" />
 	</bean>
-	<!-- hibernate -->
+	-->
+	<!-- hibernate (暂时屏蔽掉,如果连接数据库需要打开)
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
@@ -51,13 +54,14 @@
 		</property>
 		<property name="packagesToScan" value="com.spring.redis.sentinel.cache.entity" />
 	</bean>
-
-<!-- 	注册自动代理创建，为业务Bean添加拦截器 -->
+	-->
+<!-- 	注册自动代理创建，为业务Bean添加拦截器(暂时屏蔽掉,如果连接数据库需要打开)
 	<aop:config proxy-target-class="true">
 		<aop:advisor pointcut="execution(* com..*service.*(..))"
 			advice-ref="db_service" />
 	</aop:config>
-	<!-- 配置事务传播特性 -->
+	-->
+	<!-- 配置事务传播特性(暂时屏蔽掉,如果连接数据库需要打开)
 	<tx:advice id="db_service" transaction-manager="transactionManager">
 		<tx:attributes>
 			<tx:method name="do*" propagation="REQUIRED" />
@@ -74,10 +78,10 @@
 
 	<bean id="hibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
 		<property name="sessionFactory" ref="sessionFactory" />
-	</bean> 
+	</bean>
+	-->
 
-
-	<!-- redis 
+	<!-- redis
  	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
 		<property name="maxTotal" value="${maxTotal}" />
 		<property name="maxIdle" value="${maxIdle}" />
@@ -86,8 +90,8 @@
 		<property name="testOnBorrow" value="${testOnBorrow}" />
 		<property name="testOnReturn" value="${testOnReturn}" />
 		<property name="testWhileIdle" value="${testWhileIdle}" />
-	</bean>  
- 
+	</bean>
+
 	<bean id="redisSentinel" class="redis.clients.jedis.JedisSentinelPool" scope="singleton">
 		<constructor-arg index="0" value="${master}" />
 		<constructor-arg index="1">

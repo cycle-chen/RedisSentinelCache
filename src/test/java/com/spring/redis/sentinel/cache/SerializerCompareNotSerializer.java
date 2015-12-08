@@ -36,7 +36,8 @@ public class SerializerCompareNotSerializer {
      */
     @Test
     public void testWriteString() {
-        // 1000万 时间:59767ms  占内存:1483294472 ~ 1.38G
+        // 1000万 时间:59767ms ~ 67268ms 占内存:1483294472 ~ 148333169 ~ 1.38G
+        // 一条数据的情况:1000w  time:49014ms memory:1163119160 ~ 1.08G
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         Jedis jedis = jedisClient.getResource();
@@ -44,10 +45,11 @@ public class SerializerCompareNotSerializer {
         jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             public List<Object> execute(Pipeline pipeline) {
                 for (int i = 0; i < 10000000; i++) {
-                    Map<String, String> accountMap = new HashMap<String, String>();
-                    accountMap.put("id", i + "");
-                    accountMap.put("name", "supercyc" + i);
-                    pipeline.hmset("account::" + i, accountMap);
+                    pipeline.hset("account","id::" + i ,i + "");
+//                    Map<String, String> accountMap = new HashMap<String, String>();
+//                    accountMap.put("id", i + "");
+//                    accountMap.put("name", "supercyc" + i);
+//                    pipeline.hmset("account::" + i, accountMap);
                 }
                 return null;
             }
@@ -59,21 +61,25 @@ public class SerializerCompareNotSerializer {
 
     @Test
     public void testReadString() {
-        // 1000万 时间: 91751ms ~ 93736ms
+        // 1000万 时间: 91751ms ~ 93736ms ~ 96759ms ~ 97827ms
+        // 只有一条数据的情况：1000w time :49037ms ~ 51231ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
         List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             public List<Object> execute(Pipeline pipeline) {
                 for (int i = 0; i < 10000000; i++) {
-                    pipeline.hmget("account::" + i, "id", "name");
+                    pipeline.hget("account","id::" + i);
+//                    pipeline.hmget("account::" + i, "id", "name");
                 }
                 return null;
             }
         });
         for(Object o :list){
-            List<String> l = (List<String>)o;
-            l.get(1);
+            String str = String.valueOf(o);
+//            List<String> l = (List<String>)o;
+//            l.get(0);
+//            l.get(1);
         }
         long end = System.currentTimeMillis();
         System.out.println(end - start);
@@ -89,16 +95,18 @@ public class SerializerCompareNotSerializer {
     public void testWriteJson() {
 
         //1000万 时间: 64471ms   占内存:1483294616 ~ 1.38G
+        // 只有一条数据的情况：1000w time:
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
         jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             public List<Object> execute(Pipeline pipeline) {
                 for (int i = 0; i <10000000; i++) {
-                    Map<String, String> accountMap = new HashMap<String, String>();
-                    accountMap.put("id", JSON.toJSONString(i));
-                    accountMap.put("name", JSON.toJSONString("supercyc" + i));
-                    pipeline.hmset("account::" + i, accountMap);
+                    pipeline.hset("account","id::" + i,JSON.toJSONString(i));
+//                    Map<String, String> accountMap = new HashMap<String, String>();
+//                    accountMap.put("id", JSON.toJSONString(i));
+//                    accountMap.put("name", JSON.toJSONString("supercyc" + i));
+//                    pipeline.hmset("account::" + i, accountMap);
                 }
                 return null;
             }
@@ -111,22 +119,25 @@ public class SerializerCompareNotSerializer {
     @Test
     public void testReadJson() {
 
-        // 1000w 时间：113815ms
+        // 1000w 时间：106732ms ~ 113815ms
+        // 单条数据情况：1000w time:52104ms ~
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
         List<Object> accountList = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             public List<Object> execute(Pipeline pipeline) {
                 for (int i = 0; i < 10000000; i++) {
-                     pipeline.hmget("account::" + i, "id", "name");
+                    pipeline.hget("account","id::" + i);
+                     //pipeline.hmget("account::" + i, "id", "name");
                 }
                 return null;
             }
         });
         for(Object o:accountList){
-            List<String> l = (List<String>)o;
-            JSON.parseObject(l.get(0), Integer.class);
-            JSON.parseObject(l.get(1), String.class);
+            String str = JSON.parseObject(o.toString(),String.class);
+//            List<String> l = (List<String>)o;
+//            JSON.parseObject(l.get(0), Integer.class);
+//            JSON.parseObject(l.get(1), String.class);
         }
         long end = System.currentTimeMillis();
         System.out.println(end - start);

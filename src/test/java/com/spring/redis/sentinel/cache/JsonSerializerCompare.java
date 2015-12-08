@@ -9,12 +9,14 @@
  *----------------------------------------------------------------------------*/
 package com.spring.redis.sentinel.cache;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import org.xerial.snappy.Snappy;
 import redis.clients.jedis.Pipeline;
 
 import com.alibaba.fastjson.JSON;
@@ -29,9 +31,8 @@ import com.redis.sentinel.cache.jedis.JedisPipelinedCallbackNoResult;
  */
 public class JsonSerializerCompare {
 	@Test
-	public void testWriteJson() {// 100万 时间：210841ms
-									// 占内存:398970256-1785368-266777624
-									// 约等于124.3660583496094m
+	public void testWriteJson() {
+		// 100万 时间：210841ms 占内存:398970256-1785368-266777624 约等于124.3660583496094
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
 		JedisClient jedisClient = context.getBean(JedisClient.class);
@@ -146,8 +147,61 @@ public class JsonSerializerCompare {
 	 * --
 	 */
 	/** hget 批量读/写 json对象类型 */
-	@Test
-	public void pipelineWriteJson() {// 100万 时间：6458ms ~ 6986ms 占内存：127.78M
+    @Test
+	public void pipelilneWriteJsonSnappy(){
+        // 1000万 时间:42303ms ~ 46665ms 占内存：1803133920 ~1.68G
+        ApplicationContext context = new ClassPathXmlApplicationContext(
+                "spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
+        long start = System.currentTimeMillis();
+        jedisClient.runWithPipeline(new JedisPipelinedCallbackNoResult() {
+            @Override
+            public void execute(Pipeline pipeline) {
+                for (int i = 0; i < 10000000; i++) {
+                    Account account = new Account();
+                    account.setId(i);
+                    account.setName("protostuff_ycc" + i);
+                    try {
+                        pipeline.hset("account".getBytes(), ("account::" + i).getBytes(),
+                                Snappy.compress(JSON.toJSONBytes(account)));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
+    @Test
+    public void pipelineReadJsonSnappy(){
+        //1000万 时间：62905ms ~ 64326ms
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
+        long start = System.currentTimeMillis();
+        List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+            public List<Object> execute(Pipeline pipeline) {
+                for(int i = 0 ;i < 10000000;i++) {
+                    pipeline.hget("account".getBytes(), ("account::" + i).getBytes());
+                }
+                return null;
+            }
+        });
+        for(Object o:list){
+            try {
+                byte[] accountbyte = (byte[])o;
+                Account account = JSON.parseObject(Snappy.uncompress(accountbyte),Account.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println(end - start);
+    }
+    @Test
+	public void pipelineWriteJson() {
+		// 100万 时间：6458ms ~ 6986ms 占内存：127.78M
+		// 1000万 时间：47648ms ~  54216ms  占内存：1803133608 ~ 1.68G
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
 		JedisClient jedisClient = context.getBean(JedisClient.class);
@@ -155,11 +209,11 @@ public class JsonSerializerCompare {
 		jedisClient.runWithPipeline(new JedisPipelinedCallbackNoResult() {
 			@Override
 			public void execute(Pipeline pipeline) {
-				for (int i = 0; i < 1000000; i++) {
+				for (int i = 0; i < 10000000; i++) {
 					Account account = new Account();
 					account.setId(i);
-					account.setName("supercyc" + i);
-					pipeline.hset("jsonycc2s" + i, "account",
+					account.setName("protostuff_ycc" + i);
+					pipeline.hset("account", "account::" + i,
 							JSON.toJSONString(account));
 				}
 			}
@@ -169,24 +223,25 @@ public class JsonSerializerCompare {
 	}
 
 	@Test
-	public void pipelineReadJson() {// 100万 时间：3327 ~ 3439
+	public void pipelineReadJson() {
+        // 100万 时间：3327 ~ 3439
+        // 1000万 时间:65922ms ~ 71999ms ~ 82266ms ~ 90490ms
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"spring-config.xml");
 		JedisClient jedisClient = context.getBean(JedisClient.class);
 		long start = System.currentTimeMillis();
-		jedisClient.runWithPipeline(new JedisPipelinedCallback() {
+		List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
 			@Override
 			public List<Object> execute(Pipeline pipeline) {
-				for (int i = 0; i < 1000000; i++) {
-					Account account = new Account();
-					account.setId(i);
-					account.setName("supercyc" + i);
-					pipeline.hget("jsonycc2s" + i, "account");
-
+				for (int i = 0; i < 10000000; i++) {
+					pipeline.hget("account", "account::" + i);
 				}
 				return null;
 			}
 		});
+        for(Object o:list){
+           Account account = JSON.parseObject(o.toString(),Account.class);
+        }
 		long end = System.currentTimeMillis();
 		System.out.println(end - start);
 	}

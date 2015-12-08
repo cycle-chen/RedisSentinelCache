@@ -247,7 +247,14 @@ public class JedisClient {
             }
         });
     }
+    public void select(final int index){
+        callBack(new JedisCallback<String>() {
 
+            public String execute(Jedis jedis){
+                return jedis.select(index);
+            }
+        });
+    }
     /**
      * delete cache item in specified region.
      *
