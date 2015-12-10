@@ -31,7 +31,6 @@ public class PipelineCompareNotPipeline {
      */
     @Test
     public void testWritePipeline() {
-        // 1000万 时间:59767ms ~ 67268ms 占内存:1483294472 ~ 148333169 ~ 1.38G
         // 一条数据的情况:1000w  time:49014ms memory:1163119160 ~ 1.08G
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
@@ -52,7 +51,6 @@ public class PipelineCompareNotPipeline {
 
     @Test
     public void testReadPipeline() {
-        // 1000万 时间: 91751ms ~ 93736ms ~ 96759ms ~ 97827ms
         // 只有一条数据的情况：1000w time :49037ms ~ 51231ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
@@ -77,8 +75,7 @@ public class PipelineCompareNotPipeline {
      */
     @Test
     public void testWriteString() {
-        // 1000万 时间:59767ms ~ 67268ms 占内存:1483294472 ~ 148333169 ~ 1.38G
-        // 一条数据的情况:1000w  time:49014ms memory:1163119160 ~ 1.08G
+        // 1000万 时间: 占内存:1483294472 ~ 148333169 ~ 1.38G
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
@@ -93,7 +90,6 @@ public class PipelineCompareNotPipeline {
     @Test
     public void testReadString() {
         // 1000万 时间: 91751ms ~ 93736ms ~ 96759ms ~ 97827ms
-        // 只有一条数据的情况：1000w time :49037ms ~ 51231ms
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
