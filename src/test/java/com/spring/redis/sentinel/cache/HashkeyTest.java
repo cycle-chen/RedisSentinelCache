@@ -26,14 +26,14 @@ public class HashkeyTest {
      */
     @Test
     public void longKeyPerformanceTest() {
-        // 1000w time:
+        // 1000w time:34046
         ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
         JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
         List<Object> list = jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             public List<Object> execute(Pipeline pipeline) {
                 for (int i = 1; i <= 10000000; i++) {
-                    pipeline.hget("account::phoneNumber", i + "");
+                    pipeline.hset("account::phoneNumber", i + "", "ycc" + i);
                 }
                 return null;
             }
