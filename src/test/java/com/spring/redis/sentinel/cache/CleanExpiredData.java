@@ -69,4 +69,8 @@ public class CleanExpiredData {
     public void luaTimerCleanexpiredData() {
 
     }
+
+    public static void main(String[] args) {
+        System.out.print(System.currentTimeMillis());
+    }
 }
