@@ -27,16 +27,11 @@ import com.redis.sentinel.cache.jedis.JedisPipelinedCallback;
  * use lua timer to clean the expired datas
  */
 public class CleanExpiredData {
-    private JedisClient jedisClient = null;
-
-    @Before
-    public void before() {
-        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
-        jedisClient = context.getBean(JedisClient.class);
-    }
 
     @Test
     public void generateTestData() {
+        ApplicationContext context = new ClassPathXmlApplicationContext("spring-config.xml");
+        JedisClient jedisClient = context.getBean(JedisClient.class);
         long start = System.currentTimeMillis();
         jedisClient.runWithPipeline(new JedisPipelinedCallback() {
             @Override
